@@ -1,30 +1,34 @@
  <ion-header>
     <ion-toolbar color="primary">
       <ion-title>Mis Tareas ({{ pendingCount() }})</ion-title>
-      <ion-buttons slot="end">
-        <ion-button routerLink="/category-list">
-          <ion-icon name="pricetag" slot="icon-only"></ion-icon>
-        </ion-button>
-      </ion-buttons>
+      @if (remoteConfig.showCategories()) {
+        <ion-buttons slot="end">
+          <ion-button routerLink="/category-list">
+            <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      }
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
-    <div class="category-chips">
-      <ion-chip
-        [outline]="selectedCategoryId() !== null"
-        (click)="selectCategory(null)">
-        Todas
-      </ion-chip>
-        @for (cat of categories(); track cat.id) {
+    @if (remoteConfig.showCategories()) {
+      <div class="category-chips">
         <ion-chip
-          [outline]="selectedCategoryId() !== cat.id"
-          [style.--background]="selectedCategoryId() === cat.id ? cat.color : ''"
-          (click)="selectCategory(cat.id)">
-          {{ cat.name }}
+          [outline]="selectedCategoryId() !== null"
+          (click)="selectCategory(null)">
+          Todas
         </ion-chip>
-      }
-    </div>
+        @for (cat of categories(); track cat.id) {
+          <ion-chip
+            [outline]="selectedCategoryId() !== cat.id"
+            [style.--background]="selectedCategoryId() === cat.id ? cat.color : ''"
+            (click)="selectCategory(cat.id)">
+            {{ cat.name }}
+          </ion-chip>
+        }
+      </div>
+    }
     
     <ion-list>
       @for (task of filteredTasks(); track task.id) {

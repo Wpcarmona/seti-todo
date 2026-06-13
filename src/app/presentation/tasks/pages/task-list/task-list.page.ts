@@ -27,6 +27,7 @@ import { Category } from '../../../../domain/models/category.model';
 import { TaskItemComponent } from '../../components/task-item/task-item.component';
 import { TaskFormComponent } from '../../components/task-form/task-form.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { RemoteConfig } from '../../../../infrastructure/services/remote-config';
 
 @Component({
   selector: 'app-task-list',
@@ -58,6 +59,7 @@ export class TaskListPage implements OnInit {
   private updateTask = inject(UpdateTaskUseCase);
   private deleteTask = inject(DeleteTaskUseCase);
   private getCategories = inject(GetCategoriesUseCase);
+  remoteConfig = inject(RemoteConfig);
 
   tasks = signal<Task[]>([]);
   categories = signal<Category[]>([]);

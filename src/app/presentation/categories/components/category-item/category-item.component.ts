@@ -20,7 +20,6 @@ import { Category } from '../../../../domain/models/category.model';
   imports: [
     IonItem,
     IonLabel,
-    IonButton,
     IonIcon,
     IonItemSliding,
     IonItemOptions,
