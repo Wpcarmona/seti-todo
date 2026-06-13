@@ -1,0 +1,66 @@
+ <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>Mis Tareas ({{ pendingCount() }})</ion-title>
+      <ion-buttons slot="end">
+        <ion-button routerLink="/category-list">
+          <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <div class="category-chips">
+      <ion-chip
+        [outline]="selectedCategoryId() !== null"
+        (click)="selectCategory(null)">
+        Todas
+      </ion-chip>
+        @for (cat of categories(); track cat.id) {
+        <ion-chip
+          [outline]="selectedCategoryId() !== cat.id"
+          [style.--background]="selectedCategoryId() === cat.id ? cat.color : ''"
+          (click)="selectCategory(cat.id)">
+          {{ cat.name }}
+        </ion-chip>
+      }
+    </div>
+    
+    <ion-list>
+      @for (task of filteredTasks(); track task.id) {
+        <app-task-item
+          [task]="task"
+          [category]="getCategoryForTask(task)"
+          (toggled)="onToggleTask($event)"
+          (deleted)="onDeleteTask($event)">
+        </app-task-item>
+      } @empty {
+        <app-empty-state message="No hay tareas. ¡Agrega una!"></app-empty-state>
+      } 
+    </ion-list>
+    
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="isModalOpen.set(true)">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+    
+    <ion-modal [isOpen]="isModalOpen()" (didDismiss)="isModalOpen.set(false)">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Nueva Tarea</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="isModalOpen.set(false)">Cerrar</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content> 
+          <app-task-form
+            [categories]="categories()"
+            (taskCreated)="onTaskCreated($event)">
+          </app-task-form>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </ion-content>
