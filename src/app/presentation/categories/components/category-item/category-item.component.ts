@@ -11,6 +11,7 @@ import {
 import { addIcons } from 'ionicons';
 import { trash, pencil } from 'ionicons/icons';
 import { Category } from '../../../../domain/models/category.model';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-category-item',
@@ -25,6 +26,7 @@ import { Category } from '../../../../domain/models/category.model';
     IonItemOptions,
     IonItemOption,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryItemComponent {
   category = input.required<Category>();

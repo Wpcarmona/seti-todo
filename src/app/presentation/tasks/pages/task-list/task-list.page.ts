@@ -28,6 +28,8 @@ import { TaskItemComponent } from '../../components/task-item/task-item.componen
 import { TaskFormComponent } from '../../components/task-form/task-form.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { RemoteConfig } from '../../../../infrastructure/services/remote-config';
+  import { ScrollingModule } from '@angular/cdk/scrolling';
+
 
 @Component({
   selector: 'app-task-list',
@@ -51,6 +53,7 @@ import { RemoteConfig } from '../../../../infrastructure/services/remote-config'
     TaskItemComponent,
     TaskFormComponent,
     EmptyStateComponent,
+    ScrollingModule
   ],
 })
 export class TaskListPage implements OnInit {

@@ -8,6 +8,7 @@ import {
   IonList,
 } from '@ionic/angular/standalone';
 import { Category } from '../../../../domain/models/category.model';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-task-form',
@@ -15,6 +16,7 @@ import { Category } from '../../../../domain/models/category.model';
   styleUrls: ['./task-form.component.scss'],
   standalone: true,
   imports: [IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonList],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskFormComponent {
   categories = input<Category[]>([]);

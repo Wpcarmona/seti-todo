@@ -13,6 +13,7 @@ import { addIcons } from 'ionicons';
 import { trash } from 'ionicons/icons';
 import { Task } from '../../../../domain/models/task.model';
 import { Category } from '../../../../domain/models/category.model';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-task-item',
@@ -29,6 +30,7 @@ import { Category } from '../../../../domain/models/category.model';
     IonItemOption,
     IonChip,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskItemComponent {
   task = input.required<Task>();

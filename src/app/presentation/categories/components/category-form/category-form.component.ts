@@ -7,6 +7,7 @@ import {
   IonLabel,
 } from '@ionic/angular/standalone';
 import { Category } from '../../../../domain/models/category.model';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 export interface CategoryFormData {
   name: string;
@@ -19,6 +20,7 @@ export interface CategoryFormData {
   styleUrls: ['./category-form.component.scss'],
   standalone: true,
   imports: [IonItem, IonInput, IonButton, IonList, IonLabel],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryFormComponent implements OnInit {
   editingCategory = input<Category | null>(null);
