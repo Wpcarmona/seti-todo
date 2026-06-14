@@ -28,7 +28,6 @@ import { ChangeDetectionStrategy } from '@angular/core';
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonChip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

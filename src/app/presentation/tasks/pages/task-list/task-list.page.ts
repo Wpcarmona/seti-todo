@@ -41,7 +41,6 @@ import { RemoteConfig } from '../../../../infrastructure/services/remote-config'
     IonHeader,
     IonTitle,
     IonToolbar,
-    IonList,
     IonFab,
     IonFabButton,
     IonIcon,

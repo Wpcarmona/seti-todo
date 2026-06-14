@@ -1,35 +1,42 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Mis Tareas ({{ pendingCount() }})</ion-title>
+    <ion-title>Mis Tareas</ion-title>
     @if (remoteConfig.showCategories()) {
-    <ion-buttons slot="end">
-      <ion-button routerLink="/category-list">
-        <ion-icon name="pricetag" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+      <ion-buttons slot="end">
+        <ion-button routerLink="/category-list">
+          <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
     }
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  @if (remoteConfig.showCategories()) {
-  <div class="category-chips">
-    <ion-chip
-      [outline]="selectedCategoryId() !== null"
-      (click)="selectCategory(null)"
-    >
-      Todas
-    </ion-chip>
-    @for (cat of categories(); track cat.id) {
-    <ion-chip
-      [outline]="selectedCategoryId() !== cat.id"
-      [style.--background]="selectedCategoryId() === cat.id ? cat.color : ''"
-      (click)="selectCategory(cat.id)"
-    >
-      {{ cat.name }}
-    </ion-chip>
-    }
+  <div class="header-stats">
+    <div>
+      <div class="stats-count">{{ pendingCount() }}</div>
+      <div class="stats-label">pendientes</div>
+    </div>
+    <div class="stats-text">{{ filteredTasks().length }} en total</div>
   </div>
+
+  @if (remoteConfig.showCategories()) {
+    <div class="category-chips">
+      <ion-chip
+        [class.active]="selectedCategoryId() === null"
+        (click)="selectCategory(null)">
+        Todas
+      </ion-chip>
+      @for (cat of categories(); track cat.id) {
+        <ion-chip
+          [class.active]="selectedCategoryId() === cat.id"
+          [style.--background]="selectedCategoryId() === cat.id ? cat.color + '22' : ''"
+          [style.color]="selectedCategoryId() === cat.id ? cat.color : ''"
+          (click)="selectCategory(cat.id)">
+          {{ cat.name }}
+        </ion-chip>
+      }
+    </div>
   }
 
   <cdk-virtual-scroll-viewport itemSize="72" class="task-viewport">
@@ -38,11 +45,10 @@
       [task]="task"
       [category]="getCategoryForTask(task)"
       (toggled)="onToggleTask($event)"
-      (deleted)="onDeleteTask($event)"
-    >
+      (deleted)="onDeleteTask($event)">
     </app-task-item>
     @if (filteredTasks().length === 0) {
-    <app-empty-state message="No hay tareas. ¡Agrega una!"></app-empty-state>
+      <app-empty-state message="No hay tareas. ¡Agrega una!"></app-empty-state>
     }
   </cdk-virtual-scroll-viewport>
 
@@ -56,7 +62,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Nueva Tarea</ion-title>
+          <ion-title>Nueva tarea</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="isModalOpen.set(false)">Cerrar</ion-button>
           </ion-buttons>
@@ -65,8 +71,7 @@
       <ion-content>
         <app-task-form
           [categories]="categories()"
-          (taskCreated)="onTaskCreated($event)"
-        >
+          (taskCreated)="onTaskCreated($event)">
         </app-task-form>
       </ion-content>
     </ng-template>
