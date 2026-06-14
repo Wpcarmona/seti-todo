@@ -1,0 +1,14 @@
+{
+  "ios": {
+    "debug": {
+      "buildSettings": {
+        "MACOSX_DEPLOYMENT_TARGET": "13.0"
+      }
+    },
+    "release": {
+      "buildSettings": {
+        "MACOSX_DEPLOYMENT_TARGET": "13.0"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 12px 16px;
+  overflow-x: auto;
+}
+
+.task-viewport {
+  height: calc(100vh - 160px);
+}
+
+app-task-item {
+  display: block;
+  height: 72px;
+}
