@@ -1,17 +1,16 @@
 <ion-item-sliding>
-  <ion-item [class.task-completed]="task().completed">
+  <ion-item [class.task-completed]="task().completed" lines="none">
     <ion-checkbox
       slot="start"
       [checked]="task().completed"
-      (ionChange)="toggle()"
-    >
+      (ionChange)="toggle()">
     </ion-checkbox>
     <ion-label>
       <h2>{{ task().title }}</h2>
       @if (category()) {
-        <ion-chip [style.--background]="category()!.color" size="small">
+        <p class="category-name" [style.color]="category()!.color">
           {{ category()!.name }}
-        </ion-chip>
+        </p>
       }
     </ion-label>
   </ion-item>

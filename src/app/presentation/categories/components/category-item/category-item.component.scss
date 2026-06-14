@@ -1,6 +1,37 @@
+:host {
+  display: block;
+  padding: 4px 16px;
+}
+
+ion-item-sliding {
+  border-radius: var(--app-border-radius);
+  overflow: hidden;
+  box-shadow: var(--app-shadow);
+}
+
+ion-item {
+  --background: var(--ion-card-background);
+  --border-width: 0;
+  --inner-border-width: 0;
+  --padding-start: 14px;
+  --min-height: 60px;
+  border-radius: var(--app-border-radius);
+
+  ion-label {
+    font-size: 15px;
+    font-weight: 500;
+  }
+}
+
 .color-dot {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+ion-item-option {
+  font-size: 13px;
+  font-weight: 500;
 }

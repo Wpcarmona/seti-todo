@@ -1,12 +1,11 @@
-<ion-list>
+<div class="form-inner">
   <ion-item>
     <ion-input
       label="Título de la tarea"
       labelPlacement="floating"
       placeholder="¿Qué necesitas hacer?"
       [value]="title()"
-      (ionInput)="title.set($event.detail.value ?? '')"
-    >
+      (ionInput)="title.set($event.detail.value ?? '')">
     </ion-input>
   </ion-item>
 
@@ -15,17 +14,14 @@
       label="Categoría"
       labelPlacement="floating"
       placeholder="Sin categoría"
-      (ionChange)="selectedCategoryId.set($event.detail.value)"
-    >
+      (ionChange)="selectedCategoryId.set($event.detail.value)">
       @for (cat of categories(); track cat.id) {
         <ion-select-option [value]="cat.id">{{ cat.name }}</ion-select-option>
       }
     </ion-select>
   </ion-item>
-</ion-list>
 
-<div style="padding: 16px">
   <ion-button expand="block" (click)="submit()" [disabled]="!title().trim()">
-    Agregar Tarea
+    Agregar tarea
   </ion-button>
 </div>

@@ -15,7 +15,7 @@ import { ChangeDetectionStrategy } from '@angular/core';
   templateUrl: './task-form.component.html',
   styleUrls: ['./task-form.component.scss'],
   standalone: true,
-  imports: [IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonList],
+  imports: [IonItem, IonInput, IonSelect, IonSelectOption, IonButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskFormComponent {
