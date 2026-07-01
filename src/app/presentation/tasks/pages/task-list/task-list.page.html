@@ -1,5 +1,10 @@
 <ion-header>
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>Mis Tareas</ion-title>
     @if (remoteConfig.showCategories$ | async) {
       <ion-buttons slot="end">
@@ -9,6 +14,9 @@
       </ion-buttons>
     }
   </ion-toolbar>
+  @if (syncService.isSyncing$ | async) {
+    <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
+  }
 </ion-header>
 
 <ion-content>

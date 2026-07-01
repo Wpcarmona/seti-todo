@@ -6,7 +6,7 @@ import { Category } from '../../models/category.model';
 export class GetCategoriesUseCase {
   private repo = inject(CATEGORY_REPOSITORY);
 
-  execute(): Promise<Category[]> {
-    return this.repo.getAll();
+  execute(userId: string): Promise<Category[]> {
+    return this.repo.getAll(userId);
   }
 }

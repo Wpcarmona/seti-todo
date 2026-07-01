@@ -6,7 +6,7 @@ import { Task } from '../../models/task.model';
 export class GetTasksUseCase {
   private repo = inject(TASK_REPOSITORY);
 
-  execute(): Promise<Task[]> {
-    return this.repo.getAll();
+  execute(userId: string): Promise<Task[]> {
+    return this.repo.getAll(userId);
   }
 }

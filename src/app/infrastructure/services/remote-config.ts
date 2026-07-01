@@ -1,10 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import {
-  RemoteConfig as FbRemoteConfig,
-  fetchAndActivate,
-  getValue,
-} from '@angular/fire/remote-config';
+import { RemoteConfig as FbRemoteConfig } from '@angular/fire/remote-config';
+import { fetchAndActivate, getValue } from 'firebase/remote-config';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteConfig {
