@@ -4,8 +4,8 @@
       label="Nombre de categoría"
       labelPlacement="floating"
       placeholder="ej. Trabajo, Personal..."
-      [value]="name()"
-      (ionInput)="name.set($event.detail.value ?? '')"
+      [value]="name"
+      (ionInput)="name = $event.detail.value ?? ''"
     >
     </ion-input>
   </ion-item>
@@ -17,8 +17,8 @@
         <div
           class="color-option"
           [style.background]="c"
-          [class.selected]="color() === c"
-          (click)="color.set(c)"
+          [class.selected]="color === c"
+          (click)="color = c"
         ></div>
       }
     </div>
@@ -26,7 +26,7 @@
 </ion-list>
 
 <div style="padding: 16px">
-  <ion-button expand="block" (click)="submit()" [disabled]="!name().trim()">
-    {{ editingCategory() ? "Guardar cambios" : "Crear categoría" }}
+  <ion-button expand="block" (click)="submit()" [disabled]="!name.trim()">
+    {{ editingCategory ? "Guardar cambios" : "Crear categoría" }}
   </ion-button>
 </div>

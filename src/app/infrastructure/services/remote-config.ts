@@ -1,4 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import {
   RemoteConfig as FbRemoteConfig,
   fetchAndActivate,
@@ -9,7 +10,8 @@ import {
 export class RemoteConfig {
   private rc = inject(FbRemoteConfig);
 
-  showCategories = signal(true);
+  private showCategoriesSubject = new BehaviorSubject<boolean>(true);
+  readonly showCategories$ = this.showCategoriesSubject.asObservable();
 
   async initialize(): Promise<void> {
     this.rc.defaultConfig = { show_categories: true };
@@ -19,9 +21,9 @@ export class RemoteConfig {
     try {
       await fetchAndActivate(this.rc);
       const value = getValue(this.rc, 'show_categories').asBoolean();
-      this.showCategories.set(value);
+      this.showCategoriesSubject.next(value);
     } catch (e) {
-      this.showCategories.set(true);
+      this.showCategoriesSubject.next(true);
     }
   }
 }
