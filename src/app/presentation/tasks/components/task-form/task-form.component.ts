@@ -1,11 +1,10 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import {
   IonItem,
   IonInput,
   IonSelect,
   IonSelectOption,
   IonButton,
-  IonList,
 } from '@ionic/angular/standalone';
 import { Category } from '../../../../domain/models/category.model';
 import { ChangeDetectionStrategy } from '@angular/core';
@@ -19,19 +18,21 @@ import { ChangeDetectionStrategy } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskFormComponent {
-  categories = input<Category[]>([]);
-  taskCreated = output<{ title: string; categoryId: string | null }>();
+  @Input() categories: Category[] = [];
+  @Output() taskCreated = new EventEmitter<{
+    title: string;
+    categoryId: string | null;
+  }>();
+  title = '';
+  selectedCategoryId: string | null = null;
 
-  title = signal('');
-  selectedCategoryId = signal<string | null>(null);
-
-  submit() {
-    if (!this.title().trim()) return;
+  submit(): void {
+    if (!this.title.trim()) return;
     this.taskCreated.emit({
-      title: this.title().trim(),
-      categoryId: this.selectedCategoryId(),
+      title: this.title.trim(),
+      categoryId: this.selectedCategoryId,
     });
-    this.title.set('');
-    this.selectedCategoryId.set(null);
+    this.title = '';
+    this.selectedCategoryId = null;
   }
 }

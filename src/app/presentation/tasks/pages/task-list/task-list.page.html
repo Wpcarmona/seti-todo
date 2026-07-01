@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>Mis Tareas</ion-title>
-    @if (remoteConfig.showCategories()) {
+    @if (remoteConfig.showCategories$ | async) {
       <ion-buttons slot="end">
         <ion-button routerLink="/category-list">
           <ion-icon name="pricetag" slot="icon-only"></ion-icon>
@@ -18,24 +18,24 @@
 
   <div class="header-stats">
     <div>
-      <div class="stats-count">{{ pendingCount() }}</div>
+      <div class="stats-count">{{ pendingCount$ | async }}</div>
       <div class="stats-label">pendientes</div>
     </div>
-    <div class="stats-text">{{ filteredTasks().length }} en total</div>
+    <div class="stats-text">{{ (filteredTasks$ | async)?.length }} en total</div>
   </div>
 
-  @if (remoteConfig.showCategories()) {
+  @if (remoteConfig.showCategories$ | async) {
     <div class="category-chips">
       <ion-chip
-        [class.active]="selectedCategoryId() === null"
+        [class.active]="(selectedCategoryId$ | async) === null"
         (click)="selectCategory(null)">
         Todas
       </ion-chip>
-      @for (cat of categories(); track cat.id) {
+      @for (cat of (categories$ | async) ?? []; track cat.id) {
         <ion-chip
-          [class.active]="selectedCategoryId() === cat.id"
-          [style.--background]="selectedCategoryId() === cat.id ? cat.color + '22' : ''"
-          [style.color]="selectedCategoryId() === cat.id ? cat.color : ''"
+          [class.active]="(selectedCategoryId$ | async) === cat.id"
+          [style.--background]="(selectedCategoryId$ | async) === cat.id ? cat.color + '22' : ''"
+          [style.color]="(selectedCategoryId$ | async) === cat.id ? cat.color : ''"
           (click)="selectCategory(cat.id)">
           {{ cat.name }}
         </ion-chip>
@@ -45,36 +45,36 @@
 
   <cdk-virtual-scroll-viewport itemSize="72" class="task-viewport">
     <app-task-item
-      *cdkVirtualFor="let task of filteredTasks()"
+      *cdkVirtualFor="let task of (filteredTasks$ | async) ?? []"
       [task]="task"
-      [category]="getCategoryForTask(task)"
+      [category]="task.category"
       (toggled)="onToggleTask($event)"
       (deleted)="onDeleteTask($event)">
     </app-task-item>
-    @if (filteredTasks().length === 0) {
+    @if ((filteredTasks$ | async)?.length === 0) {
       <app-empty-state message="No hay tareas. ¡Agrega una!"></app-empty-state>
     }
   </cdk-virtual-scroll-viewport>
 
   <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button (click)="isModalOpen.set(true)">
+    <ion-fab-button (click)="isModalOpen$.next(true)">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
-  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="isModalOpen.set(false)">
+  <ion-modal [isOpen]="isModalOpen$ | async" (didDismiss)="isModalOpen$.next(false)">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Nueva tarea</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="isModalOpen.set(false)">Cerrar</ion-button>
+            <ion-button (click)="isModalOpen$.next(false)">Cerrar</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
       <ion-content>
         <app-task-form
-          [categories]="categories()"
+          [categories]="(categories$ | async) ?? []"
           (taskCreated)="onTaskCreated($event)">
         </app-task-form>
       </ion-content>

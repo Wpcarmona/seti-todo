@@ -1,4 +1,6 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -29,8 +31,7 @@ import { TaskItemComponent } from '../../components/task-item/task-item.componen
 import { TaskFormComponent } from '../../components/task-form/task-form.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { RemoteConfig } from '../../../../infrastructure/services/remote-config';
-  import { ScrollingModule } from '@angular/cdk/scrolling';
-
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-task-list',
@@ -55,7 +56,8 @@ import { RemoteConfig } from '../../../../infrastructure/services/remote-config'
     TaskItemComponent,
     TaskFormComponent,
     EmptyStateComponent,
-    ScrollingModule
+    ScrollingModule,
+    AsyncPipe,
   ],
 })
 export class TaskListPage implements OnInit {
@@ -66,25 +68,29 @@ export class TaskListPage implements OnInit {
   private getCategories = inject(GetCategoriesUseCase);
   remoteConfig = inject(RemoteConfig);
 
-  tasks = signal<Task[]>([]);
-  categories = signal<Category[]>([]);
-  selectedCategoryId = signal<string | null>(null);
-  isModalOpen = signal(false);
+  private tasks$ = new BehaviorSubject<Task[]>([]);
+  categories$ = new BehaviorSubject<Category[]>([]);
+  selectedCategoryId$ = new BehaviorSubject<string | null>(null);
+  isModalOpen$ = new BehaviorSubject<boolean>(false);
 
-  filteredTasks = computed(() => {
-    const id = this.selectedCategoryId();
-    return id ? this.tasks().filter((t) => t.categoryId === id) : this.tasks();
-  });
-
-  pendingCount = computed(
-    () => this.tasks().filter((t) => !t.completed).length,
+  filteredTasks$ = combineLatest([
+    this.tasks$,
+    this.categories$,
+    this.selectedCategoryId$,
+  ]).pipe(
+    map(([tasks, categories, id]) => {
+      const categoryMap = new Map(categories.map((c) => [c.id, c]));
+      const filtered = id ? tasks.filter((t) => t.categoryId === id) : tasks;
+      return filtered.map((t) => ({
+        ...t,
+        category: t.categoryId ? (categoryMap.get(t.categoryId) ?? null) : null,
+      }));
+    }),
   );
 
-  categoryMap = computed(() => {
-    const map = new Map<string, Category>();
-    this.categories().forEach((c) => map.set(c.id, c));
-    return map;
-  });
+  pendingCount$ = this.tasks$.pipe(
+    map((tasks) => tasks.filter((t) => !t.completed).length),
+  );
 
   constructor() {
     addIcons({ add, pricetag });
@@ -98,48 +104,42 @@ export class TaskListPage implements OnInit {
     await this.load();
   }
 
-  private async load() {
+  private async load(): Promise<void> {
     const [tasks, categories] = await Promise.all([
       this.getTasks.execute(),
       this.getCategories.execute(),
     ]);
-    this.tasks.set(tasks);
-    this.categories.set(categories);
+    this.tasks$.next(tasks);
+    this.categories$.next(categories);
   }
 
-  getCategoryForTask(task: Task): Category | null {
-    return task.categoryId
-      ? (this.categoryMap().get(task.categoryId) ?? null)
-      : null;
+  selectCategory(id: string | null): void {
+    this.selectedCategoryId$.next(id);
   }
 
-  selectCategory(id: string | null) {
-    this.selectedCategoryId.set(id);
-  }
-
-  async onTaskCreated(data: { title: string; categoryId: string | null }) {
+  async onTaskCreated(data: {
+    title: string;
+    categoryId: string | null;
+  }): Promise<void> {
     const task = await this.createTask.execute(data.title, data.categoryId);
-    this.tasks.update((tasks) => [...tasks, task]);
-    this.isModalOpen.set(false);
+    this.tasks$.next([...this.tasks$.getValue(), task]);
+    this.isModalOpen$.next(false);
   }
 
-  async onToggleTask(task: Task) {
+  async onToggleTask(task: Task): Promise<void> {
     await this.updateTask.execute(task);
-    this.tasks.update((tasks) =>
-      tasks.map((t) => (t.id === task.id ? task : t)),
+    this.tasks$.next(
+      this.tasks$.getValue().map((t) => (t.id === task.id ? task : t)),
     );
   }
 
-  async onDeleteTask(id: string) {
+  async onDeleteTask(id: string): Promise<void> {
     await this.deleteTask.execute(id);
-    this.tasks.update((tasks) => tasks.filter((t) => t.id !== id));
+    this.tasks$.next(this.tasks$.getValue().filter((t) => t.id !== id));
   }
 
-  async onRefresh(event: CustomEvent) {
-    await Promise.all([
-      this.remoteConfig.initialize(),
-      this.load(),
-    ]);
+  async onRefresh(event: CustomEvent): Promise<void> {
+    await Promise.all([this.remoteConfig.initialize(), this.load()]);
     (event.target as HTMLIonRefresherElement).complete();
   }
 }

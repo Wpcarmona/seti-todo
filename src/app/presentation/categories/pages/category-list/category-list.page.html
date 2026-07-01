@@ -9,7 +9,7 @@
 
 <ion-content>
   <ion-list>
-    @for (cat of categories(); track cat.id) {
+    @for (cat of (categories$ | async) ?? []; track cat.id) {
     <app-category-item
       [category]="cat"
       (edited)="openEdit($event)"
@@ -27,12 +27,12 @@
     </ion-fab-button>
   </ion-fab>
 
-  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="closeModal()">
+  <ion-modal [isOpen]="isModalOpen$ | async" (didDismiss)="closeModal()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title
-            >{{ editingCategory() ? 'Editar categoría' : 'Nueva categoría'
+            >{{ (editingCategory$ | async) ? 'Editar categoría' : 'Nueva categoría'
             }}</ion-title
           >
           <ion-buttons slot="end">
@@ -42,7 +42,7 @@
       </ion-header>
       <ion-content>
         <app-category-form
-          [editingCategory]="editingCategory()"
+          [editingCategory]="editingCategory$ | async"
           (formSubmitted)="onFormSubmitted($event)"
         >
         </app-category-form>
