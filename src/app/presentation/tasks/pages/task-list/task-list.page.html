@@ -12,6 +12,10 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="header-stats">
     <div>
       <div class="stats-count">{{ pendingCount() }}</div>
