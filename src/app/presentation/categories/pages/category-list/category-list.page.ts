@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   IonContent,
   IonHeader,
@@ -13,6 +13,9 @@ import {
   IonModal,
   IonBackButton,
 } from '@ionic/angular/standalone';
+import { AsyncPipe } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
 
@@ -49,6 +52,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
     CategoryItemComponent,
     CategoryFormComponent,
     EmptyStateComponent,
+    AsyncPipe,
   ],
 })
 export class CategoryListPage implements OnInit {
@@ -56,57 +60,64 @@ export class CategoryListPage implements OnInit {
   private createCategory = inject(CreateCategoryUseCase);
   private updateCategory = inject(UpdateCategoryUseCase);
   private deleteCategory = inject(DeleteCategoryUseCase);
+  private auth = inject(Auth);
 
-  categories = signal<Category[]>([]);
-  isModalOpen = signal(false);
-  editingCategory = signal<Category | null>(null);
+  categories$ = new BehaviorSubject<Category[]>([]);
+  isModalOpen$ = new BehaviorSubject<boolean>(false);
+  editingCategory$ = new BehaviorSubject<Category | null>(null);
 
-  constructor() {}
+  private get userId(): string {
+    return this.auth.currentUser?.uid ?? '';
+  }
 
-  async ngOnInit() {
+  constructor() {
+    addIcons({ add });
+  }
+
+  async ngOnInit(): Promise<void> {
     await this.load();
   }
 
-  async ionViewWillEnter() {
+  async ionViewWillEnter(): Promise<void> {
     await this.load();
   }
 
-  private async load() {
-    this.categories.set(await this.getCategories.execute());
+  private async load(): Promise<void> {
+    this.categories$.next(await this.getCategories.execute(this.userId));
   }
 
-  openCreate() {
-    this.editingCategory.set(null);
-    this.isModalOpen.set(true);
+  openCreate(): void {
+    this.editingCategory$.next(null);
+    this.isModalOpen$.next(true);
   }
 
-  openEdit(category: Category) {
-    this.editingCategory.set(category);
-    this.isModalOpen.set(true);
+  openEdit(cat: Category): void {
+    this.editingCategory$.next(cat);
+    this.isModalOpen$.next(true);
   }
 
-  closeModal() {
-    this.isModalOpen.set(false);
-    this.editingCategory.set(null);
+  closeModal(): void {
+    this.isModalOpen$.next(false);
+    this.editingCategory$.next(null);
   }
 
-  async onFormSubmitted(data: CategoryFormData) {
-    const editing = this.editingCategory();
+  async onFormSubmitted(data: CategoryFormData): Promise<void> {
+    const editing = this.editingCategory$.getValue();
     if (editing) {
       const updated: Category = { ...editing, ...data };
       await this.updateCategory.execute(updated);
-      this.categories.update((cats) =>
-        cats.map((c) => (c.id === updated.id ? updated : c)),
+      this.categories$.next(
+        this.categories$.getValue().map(c => c.id === updated.id ? updated : c),
       );
     } else {
-      const created = await this.createCategory.execute(data.name, data.color);
-      this.categories.update((cats) => [...cats, created]);
+      const created = await this.createCategory.execute(data.name, data.color, this.userId);
+      this.categories$.next([...this.categories$.getValue(), created]);
     }
     this.closeModal();
   }
 
-  async onDeleteCategory(id: string) {
+  async onDeleteCategory(id: string): Promise<void> {
     await this.deleteCategory.execute(id);
-    this.categories.update((cats) => cats.filter((c) => c.id !== id));
+    this.categories$.next(this.categories$.getValue().filter(c => c.id !== id));
   }
 }

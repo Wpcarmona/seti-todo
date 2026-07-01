@@ -1,4 +1,4 @@
-import { Component, input, output, signal, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import {
   IonItem,
   IonInput,
@@ -23,11 +23,11 @@ export interface CategoryFormData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryFormComponent implements OnInit {
-  editingCategory = input<Category | null>(null);
-  formSubmitted = output<CategoryFormData>();
+  @Input() editingCategory: Category | null = null;
+  @Output() formSubmitted = new EventEmitter<CategoryFormData>();
 
-  name = signal('');
-  color = signal('#3880ff');
+  name = '';
+  color = '#3880ff';
 
   readonly colors = [
     '#3880ff',
@@ -40,18 +40,17 @@ export class CategoryFormComponent implements OnInit {
     '#2ec4b6',
   ];
 
-  ngOnInit() {
-    const cat = this.editingCategory();
-    if (cat) {
-      this.name.set(cat.name);
-      this.color.set(cat.color);
+  ngOnInit(): void {
+    if (this.editingCategory) {
+      this.name = this.editingCategory.name;
+      this.color = this.editingCategory.color;
     }
   }
 
-  submit() {
-    if (!this.name().trim()) return;
-    this.formSubmitted.emit({ name: this.name().trim(), color: this.color() });
-    this.name.set('');
-    this.color.set('#3880ff');
+  submit(): void {
+    if (!this.name.trim()) return;
+    this.formSubmitted.emit({ name: this.name.trim(), color: this.color });
+    this.name = '';
+    this.color = '#3880ff';
   }
 }

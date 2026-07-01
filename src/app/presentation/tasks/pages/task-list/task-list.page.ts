@@ -1,4 +1,7 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -13,24 +16,27 @@ import {
   IonModal,
   IonRefresher,
   IonRefresherContent,
+  IonProgressBar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, pricetag } from 'ionicons/icons';
+import { add, pricetag, logOut } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
+import { Auth } from '@angular/fire/auth';
 
 import { GetTasksUseCase } from '../../../../domain/use-cases/task/get-tasks.usecase';
 import { CreateTaskUseCase } from '../../../../domain/use-cases/task/create-task.usecase';
 import { UpdateTaskUseCase } from '../../../../domain/use-cases/task/update-task.usecase';
 import { DeleteTaskUseCase } from '../../../../domain/use-cases/task/delete-task.usecase';
 import { GetCategoriesUseCase } from '../../../../domain/use-cases/category/get-categories.usecase';
+import { LogoutUseCase } from '../../../../domain/use-cases/auth/logout.usecase';
 import { Task } from '../../../../domain/models/task.model';
 import { Category } from '../../../../domain/models/category.model';
 import { TaskItemComponent } from '../../components/task-item/task-item.component';
 import { TaskFormComponent } from '../../components/task-form/task-form.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { RemoteConfig } from '../../../../infrastructure/services/remote-config';
-  import { ScrollingModule } from '@angular/cdk/scrolling';
-
+import { SyncService } from '../../../../infrastructure/services/sync.service';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-task-list',
@@ -51,11 +57,13 @@ import { RemoteConfig } from '../../../../infrastructure/services/remote-config'
     IonModal,
     IonRefresher,
     IonRefresherContent,
+    IonProgressBar,
     RouterLink,
     TaskItemComponent,
     TaskFormComponent,
     EmptyStateComponent,
-    ScrollingModule
+    ScrollingModule,
+    AsyncPipe,
   ],
 })
 export class TaskListPage implements OnInit {
@@ -64,82 +72,95 @@ export class TaskListPage implements OnInit {
   private updateTask = inject(UpdateTaskUseCase);
   private deleteTask = inject(DeleteTaskUseCase);
   private getCategories = inject(GetCategoriesUseCase);
+  private logoutUseCase = inject(LogoutUseCase);
+  private auth = inject(Auth);
+  private router = inject(Router);
+
   remoteConfig = inject(RemoteConfig);
+  syncService = inject(SyncService);
 
-  tasks = signal<Task[]>([]);
-  categories = signal<Category[]>([]);
-  selectedCategoryId = signal<string | null>(null);
-  isModalOpen = signal(false);
+  private tasks$ = new BehaviorSubject<Task[]>([]);
+  categories$ = new BehaviorSubject<Category[]>([]);
+  selectedCategoryId$ = new BehaviorSubject<string | null>(null);
+  isModalOpen$ = new BehaviorSubject<boolean>(false);
 
-  filteredTasks = computed(() => {
-    const id = this.selectedCategoryId();
-    return id ? this.tasks().filter((t) => t.categoryId === id) : this.tasks();
-  });
-
-  pendingCount = computed(
-    () => this.tasks().filter((t) => !t.completed).length,
+  filteredTasks$ = combineLatest([
+    this.tasks$,
+    this.categories$,
+    this.selectedCategoryId$,
+  ]).pipe(
+    map(([tasks, categories, id]) => {
+      const categoryMap = new Map(categories.map(c => [c.id, c]));
+      const filtered = id ? tasks.filter(t => t.categoryId === id) : tasks;
+      return filtered.map(t => ({
+        ...t,
+        category: t.categoryId ? (categoryMap.get(t.categoryId) ?? null) : null,
+      }));
+    }),
   );
 
-  categoryMap = computed(() => {
-    const map = new Map<string, Category>();
-    this.categories().forEach((c) => map.set(c.id, c));
-    return map;
-  });
+  pendingCount$ = this.tasks$.pipe(
+    map(tasks => tasks.filter(t => !t.completed).length),
+  );
+
+  private get userId(): string {
+    return this.auth.currentUser?.uid ?? '';
+  }
 
   constructor() {
-    addIcons({ add, pricetag });
+    addIcons({ add, pricetag, logOut });
   }
 
-  async ngOnInit() {
+  async ngOnInit(): Promise<void> {
     await this.load();
   }
 
-  async ionViewWillEnter() {
+  async ionViewWillEnter(): Promise<void> {
     await this.load();
   }
 
-  private async load() {
+  private async load(): Promise<void> {
     const [tasks, categories] = await Promise.all([
-      this.getTasks.execute(),
-      this.getCategories.execute(),
+      this.getTasks.execute(this.userId),
+      this.getCategories.execute(this.userId),
     ]);
-    this.tasks.set(tasks);
-    this.categories.set(categories);
+    this.tasks$.next(tasks);
+    this.categories$.next(categories);
   }
 
-  getCategoryForTask(task: Task): Category | null {
-    return task.categoryId
-      ? (this.categoryMap().get(task.categoryId) ?? null)
-      : null;
+  selectCategory(id: string | null): void {
+    this.selectedCategoryId$.next(id);
   }
 
-  selectCategory(id: string | null) {
-    this.selectedCategoryId.set(id);
+  async onTaskCreated(data: { title: string; categoryId: string | null }): Promise<void> {
+    const task = await this.createTask.execute(data.title, data.categoryId, this.userId);
+    this.tasks$.next([...this.tasks$.getValue(), task]);
+    this.isModalOpen$.next(false);
   }
 
-  async onTaskCreated(data: { title: string; categoryId: string | null }) {
-    const task = await this.createTask.execute(data.title, data.categoryId);
-    this.tasks.update((tasks) => [...tasks, task]);
-    this.isModalOpen.set(false);
-  }
-
-  async onToggleTask(task: Task) {
+  async onToggleTask(task: Task): Promise<void> {
     await this.updateTask.execute(task);
-    this.tasks.update((tasks) =>
-      tasks.map((t) => (t.id === task.id ? task : t)),
+    this.tasks$.next(
+      this.tasks$.getValue().map(t => t.id === task.id ? task : t),
     );
   }
 
-  async onDeleteTask(id: string) {
+  async onDeleteTask(id: string): Promise<void> {
     await this.deleteTask.execute(id);
-    this.tasks.update((tasks) => tasks.filter((t) => t.id !== id));
+    this.tasks$.next(this.tasks$.getValue().filter(t => t.id !== id));
   }
 
-  async onRefresh(event: CustomEvent) {
+  async onRefresh(event: CustomEvent): Promise<void> {
     await Promise.all([
       this.remoteConfig.initialize(),
+      this.syncService.syncAll(this.userId),
       this.load(),
     ]);
     (event.target as HTMLIonRefresherElement).complete();
+  }
+
+  async logout(): Promise<void> {
+    await this.logoutUseCase.execute();
+    await this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

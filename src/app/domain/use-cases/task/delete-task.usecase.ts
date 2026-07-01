@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { TaskRepository } from '../../../infrastructure/repositories/task-repository';
+import { TASK_REPOSITORY } from '../../interfaces/task-repository.token';
 
 @Injectable({ providedIn: 'root' })
 export class DeleteTaskUseCase {
-  private repo = inject(TaskRepository);
+  private repo = inject(TASK_REPOSITORY);
 
   execute(id: string): Promise<void> {
     return this.repo.delete(id);
