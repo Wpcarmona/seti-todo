@@ -4,7 +4,6 @@ import {
   IonHeader,
   IonTitle,
   IonToolbar,
-  IonList,
   IonFab,
   IonFabButton,
   IonIcon,
@@ -12,6 +11,8 @@ import {
   IonButtons,
   IonButton,
   IonModal,
+  IonRefresher,
+  IonRefresherContent,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, pricetag } from 'ionicons/icons';
@@ -48,6 +49,8 @@ import { RemoteConfig } from '../../../../infrastructure/services/remote-config'
     IonButtons,
     IonButton,
     IonModal,
+    IonRefresher,
+    IonRefresherContent,
     RouterLink,
     TaskItemComponent,
     TaskFormComponent,
@@ -130,5 +133,13 @@ export class TaskListPage implements OnInit {
   async onDeleteTask(id: string) {
     await this.deleteTask.execute(id);
     this.tasks.update((tasks) => tasks.filter((t) => t.id !== id));
+  }
+
+  async onRefresh(event: CustomEvent) {
+    await Promise.all([
+      this.remoteConfig.initialize(),
+      this.load(),
+    ]);
+    (event.target as HTMLIonRefresherElement).complete();
   }
 }
