@@ -3,7 +3,7 @@
   import { Task } from '../../domain/models/task.model';
   import { StorageService } from '../services/storage';
 
-  @Injectable({ providedIn: 'root' })
+  @Injectable()
   export class TaskRepository implements ITaskRepository {
     private storage = inject(StorageService);
     private readonly KEY = 'tasks';

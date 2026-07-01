@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
   import { Category } from '../../domain/models/category.model';
   import { StorageService } from '../services/storage';
 
-  @Injectable({ providedIn: 'root' })
+  @Injectable()
   export class CategoryRepository implements ICategoryRepository {
     private storage = inject(StorageService);
     private readonly KEY = 'categories';

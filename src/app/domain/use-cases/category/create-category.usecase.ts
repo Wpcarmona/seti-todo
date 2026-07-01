@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
-import { CategoryRepository } from '../../../infrastructure/repositories/category-repository';
+import { CATEGORY_REPOSITORY } from '../../interfaces/category-repository.token';
 import { Category } from '../../models/category.model';
 
 @Injectable({ providedIn: 'root' })
 export class CreateCategoryUseCase {
-  private repo = inject(CategoryRepository);
+  private repo = inject(CATEGORY_REPOSITORY);
 
   async execute(name: string, color: string): Promise<Category> {
     const category: Category = {
